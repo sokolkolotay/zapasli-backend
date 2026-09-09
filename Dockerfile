@@ -2,6 +2,7 @@
 
 FROM gradle:9.5.0-jdk17 AS build
 WORKDIR /workspace
+RUN chown gradle:gradle /workspace
 
 COPY --chown=gradle:gradle gradle gradle
 COPY --chown=gradle:gradle gradlew gradlew.bat settings.gradle.kts build.gradle.kts gradle.properties ./
