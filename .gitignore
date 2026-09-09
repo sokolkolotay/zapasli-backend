@@ -1,0 +1,30 @@
+# Gradle and build output
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.fleet/
+.vscode/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+secrets/
+
+# Runtime files
+*.log
+logs/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db

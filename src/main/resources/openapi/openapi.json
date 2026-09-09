@@ -1,0 +1,220 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Zapasli API",
+    "version": "0.1.0",
+    "description": "Backend API for shared household food inventory. This foundation contract contains only implemented operational endpoints."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Operations",
+      "description": "Liveness, readiness and build metadata"
+    },
+    {
+      "name": "Documentation",
+      "description": "Machine-readable and interactive API documentation"
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": ["Operations"],
+        "summary": "Check process liveness",
+        "operationId": "getLiveness",
+        "responses": {
+          "200": {
+            "description": "The application process is alive",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": ["Operations"],
+        "summary": "Check application readiness",
+        "description": "Checks that the application can reach PostgreSQL without exposing connection details.",
+        "operationId": "getReadiness",
+        "responses": {
+          "200": {
+            "description": "The application is ready to serve traffic",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A required dependency is unavailable",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "tags": ["Operations"],
+        "summary": "Get public build metadata",
+        "operationId": "getVersion",
+        "responses": {
+          "200": {
+            "description": "Sanitized version and commit identifier",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": ["Documentation"],
+        "summary": "Get the OpenAPI document",
+        "operationId": "getOpenApi",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1 document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger": {
+      "get": {
+        "tags": ["Documentation"],
+        "summary": "Open interactive Swagger UI",
+        "operationId": "getSwagger",
+        "responses": {
+          "200": {
+            "description": "Swagger UI HTML"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "RequestId": {
+        "description": "UUID used to correlate the request with server logs",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "schemas": {
+      "ServiceStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "service", "checkedAt"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "examples": ["ready"]
+          },
+          "service": {
+            "type": "string",
+            "const": "zapasli-backend"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Version": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["service", "version", "commit"],
+        "properties": {
+          "service": {
+            "type": "string",
+            "const": "zapasli-backend"
+          },
+          "version": {
+            "type": "string",
+            "examples": ["0.1.0"]
+          },
+          "commit": {
+            "type": "string",
+            "examples": ["abc1234"]
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message", "requestId"],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

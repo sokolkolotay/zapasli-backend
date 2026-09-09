@@ -1,0 +1,12 @@
+.git
+.github
+.gradle
+.idea
+build
+.env
+.env.*
+*.key
+*.pem
+*.p12
+secrets
+docs
