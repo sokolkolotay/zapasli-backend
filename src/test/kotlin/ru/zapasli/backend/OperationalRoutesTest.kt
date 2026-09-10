@@ -108,6 +108,11 @@ class OperationalRoutesTest {
         assertTrue("/version" in paths)
         assertTrue("/openapi.json" in paths)
         assertTrue("/swagger" in paths)
+        assertTrue("/api/v1/auth/register" in paths)
+        assertTrue("/api/v1/auth/login" in paths)
+        assertTrue("/api/v1/auth/refresh" in paths)
+        assertTrue("/api/v1/auth/logout" in paths)
+        assertTrue("/api/v1/me" in paths)
     }
 
     @Test

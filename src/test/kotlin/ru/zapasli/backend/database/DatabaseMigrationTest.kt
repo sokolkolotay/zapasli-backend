@@ -25,7 +25,7 @@ class DatabaseMigrationTest {
             val firstRun = DatabaseFactory.migrate(it)
             val secondRun = DatabaseFactory.migrate(it)
 
-            assertEquals(1, firstRun.migrationsExecuted)
+            assertEquals(2, firstRun.migrationsExecuted)
             assertEquals(0, secondRun.migrationsExecuted)
 
             it.connection.use { connection ->
