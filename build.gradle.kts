@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.zapasli"
-version = providers.gradleProperty("appVersion").getOrElse("0.1.0-SNAPSHOT")
+version = providers.gradleProperty("appVersion").getOrElse("0.2.0-SNAPSHOT")
 
 application {
     mainClass.set("ru.zapasli.backend.ApplicationKt")
@@ -27,11 +27,15 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.default.headers)
     implementation(libs.ktor.server.swagger)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.ktor.server.rate.limit)
+    implementation(libs.bouncycastle.provider)
 
     implementation(libs.hikari)
     implementation(libs.flyway.core)
+    implementation(libs.postgresql)
     runtimeOnly(libs.flyway.postgresql)
-    runtimeOnly(libs.postgresql)
     runtimeOnly(libs.logback)
 
     testImplementation(kotlin("test-junit5"))

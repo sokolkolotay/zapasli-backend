@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Zapasli API",
-    "version": "0.1.0",
-    "description": "Backend API for shared household food inventory. This foundation contract contains only implemented operational endpoints."
+    "version": "0.2.0",
+    "description": "Backend API for shared household food inventory. The contract contains implemented operational and authentication endpoints."
   },
   "servers": [
     {
@@ -17,11 +17,206 @@
       "description": "Liveness, readiness and build metadata"
     },
     {
+      "name": "Authentication",
+      "description": "Registration, login and rotating refresh sessions"
+    },
+    {
+      "name": "Users",
+      "description": "Operations scoped to the authenticated user"
+    },
+    {
       "name": "Documentation",
       "description": "Machine-readable and interactive API documentation"
     }
   ],
   "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a user and start a session",
+        "operationId": "registerUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The user and initial rotating session were created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "The normalized email is already registered",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          },
+          "422": {
+            "description": "One or more fields are invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          },
+          "429": {
+            "description": "Registration rate limit exceeded",
+            "headers": {
+              "Retry-After": { "$ref": "#/components/headers/RetryAfter" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate with email and password",
+        "operationId": "loginUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A new session was created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "The credentials are invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          },
+          "429": {
+            "description": "Login rate limit exceeded",
+            "headers": {
+              "Retry-After": { "$ref": "#/components/headers/RetryAfter" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Rotate a refresh token and issue a new access token",
+        "description": "Reuse of a previously rotated token revokes every active token in that session family.",
+        "operationId": "refreshSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The refresh token was rotated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "The token is invalid, expired, revoked or reused",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          },
+          "429": {
+            "description": "Refresh rate limit exceeded",
+            "headers": {
+              "Retry-After": { "$ref": "#/components/headers/RetryAfter" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Revoke the current refresh-token family",
+        "operationId": "logoutSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LogoutRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The operation is complete, including for an unknown token"
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get the current public user profile",
+        "operationId": "getCurrentUser",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The authenticated user profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or expired",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "tags": ["Operations"],
@@ -143,6 +338,13 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "headers": {
       "RequestId": {
         "description": "UUID used to correlate the request with server logs",
@@ -150,9 +352,125 @@
           "type": "string",
           "format": "uuid"
         }
+      },
+      "RetryAfter": {
+        "description": "Seconds before the client should retry",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["email", "password", "displayName"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "writeOnly": true
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "locale": {
+            "type": "string",
+            "enum": ["ru", "en"],
+            "default": "ru"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "writeOnly": true,
+            "description": "Opaque rotating token stored only in protected client storage"
+          }
+        }
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "writeOnly": true
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "displayName", "locale"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "enum": ["ru", "en"]
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["user", "accessToken", "accessTokenExpiresAt", "refreshToken"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Short-lived bearer token"
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Opaque rotating token for protected client storage"
+          }
+        }
+      },
       "ServiceStatus": {
         "type": "object",
         "additionalProperties": false,
@@ -210,6 +528,19 @@
               "requestId": {
                 "type": "string",
                 "format": "uuid"
+              },
+              "fieldErrors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["field", "code", "message"],
+                  "properties": {
+                    "field": { "type": "string" },
+                    "code": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
               }
             }
           }

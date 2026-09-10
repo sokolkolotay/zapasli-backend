@@ -2,10 +2,13 @@
 
 Backend для Zapasli — приложения совместного учёта домашних продуктов.
 
-Текущая версия — engineering foundation:
+Текущая версия — backend foundation с первым auth vertical slice:
 
 - Kotlin/JVM и Ktor;
 - PostgreSQL и версионируемые Flyway-миграции;
+- регистрация, вход, выход и защищённый профиль пользователя;
+- Argon2id, короткоживущие JWT и ротация refresh token с reuse detection;
+- отдельные rate limits для публичных auth endpoints;
 - liveness/readiness/version endpoints;
 - единый OpenAPI 3.1 документ и Swagger UI;
 - локальный Docker Compose без публичного доступа к БД;
