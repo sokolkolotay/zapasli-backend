@@ -126,18 +126,32 @@ class AuthRoutesTest {
         assertFalse(limited.headers[HttpHeaders.RetryAfter].isNullOrBlank())
     }
 
+    @Test
+    fun `registration rate limit separates client addresses forwarded by the trusted proxy`() = testApplication {
+        application { configureApplication(dependencies()) }
+
+        repeat(5) {
+            assertEquals(HttpStatusCode.Created, client.register("198.51.100.10").status)
+        }
+
+        assertEquals(HttpStatusCode.TooManyRequests, client.register("198.51.100.10").status)
+        assertEquals(HttpStatusCode.Created, client.register("198.51.100.11").status)
+    }
+
     private fun dependencies() = AppDependencies(
         readinessProbe = ReadinessProbe { true },
         buildInfo = BuildInfo("test", "test"),
         auth = AuthModule(service, accessTokens),
     )
 
-    private suspend fun io.ktor.client.HttpClient.register() = post("/api/v1/auth/register") {
-        contentType(ContentType.Application.Json)
-        setBody(
-            """{"email":"user@example.com","password":"a sufficiently long password","displayName":"Илья"}""",
-        )
-    }
+    private suspend fun io.ktor.client.HttpClient.register(forwardedFor: String? = null) =
+        post("/api/v1/auth/register") {
+            contentType(ContentType.Application.Json)
+            forwardedFor?.let { header("X-Forwarded-For", it) }
+            setBody(
+                """{"email":"user@example.com","password":"a sufficiently long password","displayName":"Илья"}""",
+            )
+        }
 
     private class FakeAuthService(
         private val user: AuthUser,

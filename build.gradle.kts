@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.rate.limit)
+    implementation(libs.ktor.server.forwarded.header)
     implementation(libs.bouncycastle.provider)
 
     implementation(libs.hikari)

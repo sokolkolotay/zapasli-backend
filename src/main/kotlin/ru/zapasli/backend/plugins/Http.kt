@@ -15,6 +15,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -37,6 +38,10 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.minutes
 
 fun Application.configureHttp(dependencies: AppDependencies) {
+    install(XForwardedHeaders) {
+        useFirstProxy()
+    }
+
     install(CallId) {
         retrieveFromHeader(HttpHeaders.XRequestId)
         generate { UUID.randomUUID().toString() }
