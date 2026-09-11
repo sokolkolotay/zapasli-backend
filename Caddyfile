@@ -34,3 +34,30 @@ api.zapasli.sokolkolotaj.ru {
 		format json
 	}
 }
+
+zapasli.sokolkolotaj.ru {
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	reverse_proxy zapasli-web:8080 {
+		health_uri /
+		health_interval 30s
+		health_timeout 5s
+		fail_duration 30s
+		max_fails 3
+		transport http {
+			response_header_timeout 15s
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
