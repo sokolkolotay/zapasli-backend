@@ -29,6 +29,8 @@ Required `.env` keys are documented in `.env.example`. Production must use:
 - a random database password;
 - at least 32 random bytes, Base64 encoded, for JWT signing;
 - a different random value for refresh-token HMAC hashing;
+- a valid contact address in `ACME_EMAIL` for certificate management and CA
+  failover;
 - `APP_VERSION` and `GIT_COMMIT` matching the deployed revision.
 
 Never use the placeholders from `.env.example` in a running environment.
