@@ -1,6 +1,9 @@
 # Production deployment
 
-Production endpoint: `https://api.zapasli.sokolkolotaj.ru`.
+Production endpoints:
+
+- API: `https://api.zapasli.sokolkolotaj.ru`;
+- product site: `https://zapasli.sokolkolotaj.ru`.
 
 The deployment uses `compose.yaml` together with `compose.prod.yaml`:
 
@@ -10,13 +13,16 @@ The deployment uses `compose.yaml` together with `compose.prod.yaml`:
 - Caddy obtains and renews the public TLS certificate automatically;
 - Caddy access logs redact credential headers by default;
 - persistent volumes retain PostgreSQL data and Caddy certificates.
+- the product site runs as a separate project and is reached through the shared
+  `zapasli_edge` Docker network as `zapasli-web:8080`.
 
 ## Prerequisites
 
-- the domain A record points to the VDS;
+- both domain A records point to the VDS;
 - Docker Engine and Docker Compose are installed;
 - inbound TCP `80` and `443` are allowed only when Caddy is ready to start;
 - the checkout is placed in `/opt/zapasli/backend`;
+- the web project is running from `/opt/zapasli/web` on the shared edge network;
 - `.env` exists only on the server, is owned by `root`, and has mode `600`.
 
 ## Secrets

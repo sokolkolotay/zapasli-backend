@@ -13,7 +13,8 @@ Backend для Zapasli — приложения совместного учёт�
 - единый OpenAPI 3.1 документ и Swagger UI;
 - локальный Docker Compose без публичного доступа к БД;
 - unit, HTTP и PostgreSQL integration tests;
-- CI для сборки, тестов и production container.
+- CI для сборки, тестов и production container;
+- Caddy routes для API и отдельного контейнера продуктового сайта.
 
 ## Требования
 
